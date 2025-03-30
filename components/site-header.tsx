@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import type React from "react";
+
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Plus, User, ChevronDown } from "lucide-react";
-
+import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,16 +21,8 @@ interface NavItem {
   }[];
 }
 
-interface MegaMenuProps {
-  items: {
-    title: string;
-    items: {
-      title: string;
-      href: string;
-      isNew?: boolean;
-    }[];
-  }[];
-  isOpen: boolean;
+interface SiteHeaderProps {
+  onOpenAuthModal?: () => void;
 }
 
 const navItems: NavItem[] = [
@@ -65,46 +59,6 @@ const navItems: NavItem[] = [
   },
 ];
 
-function MegaMenu({ items, isOpen }: MegaMenuProps) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="absolute top-full left-0 w-full bg-white shadow-xl border-t border-gray-100 z-50 animate-in fade-in-10 zoom-in-98 duration-100">
-      <div className="container mx-auto py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6">
-          {items.map((section, index) => (
-            <div key={index} className="space-y-4">
-              <h3 className="font-bold text-sm text-gray-900 border-b border-gray-200 pb-2">
-                {section.title}
-              </h3>
-              <ul className="space-y-2.5">
-                {section.items.map((item, itemIndex) => (
-                  <li key={itemIndex}>
-                    <Link
-                      href={item.href}
-                      className="group text-gray-700 hover:text-black flex items-center text-sm font-medium transition-all duration-200 relative overflow-hidden py-1"
-                    >
-                      <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-200">
-                        {item.title}
-                      </span>
-                      {item.isNew && (
-                        <span className="ml-2 bg-gradient-to-r from-orange-500 to-orange-400 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                          NEW
-                        </span>
-                      )}
-                      <span className="absolute bottom-0 left-0 w-0 h-full bg-gradient-to-r from-gray-100 to-transparent group-hover:w-full transition-all duration-300 -z-0"></span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SimpleDropdown({
   items,
   isOpen,
@@ -115,7 +69,7 @@ function SimpleDropdown({
   if (!isOpen || !items) return null;
 
   return (
-    <div className="absolute top-full left-0 bg-white shadow-xl rounded-lg border border-gray-100 z-50 min-w-[240px] overflow-hidden animate-in fade-in-10 zoom-in-95 duration-100">
+    <div className="absolute top-full left-0 bg-white shadow-xl rounded-lg border border-gray-100 z-50 min-w-[240px] overflow-hidden">
       <ul className="py-3">
         {items.map((item, index) => (
           <li key={index}>
@@ -140,80 +94,55 @@ function SimpleDropdown({
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ onOpenAuthModal }: SiteHeaderProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const propertyMegaMenu = [
-    {
-      title: "LIST TYPES",
-      items: [
-        { title: "HALF MAP LIST", href: "/property/half-map", isNew: true },
-        { title: "SIDEBAR LIST", href: "/property/sidebar" },
-        {
-          title: "SIDEBAR LIST WIDE",
-          href: "/property/sidebar-wide",
-          isNew: true,
-        },
-        { title: "TOP FILTER LIST", href: "/property/top-filter", isNew: true },
-        { title: "TOP FILTER LIST WIDE", href: "/property/top-filter-wide" },
-        { title: "COMPACT", href: "/property/compact" },
-      ],
-    },
-    {
-      title: "LIST LAYOUTS",
-      items: [
-        { title: "TWO COLUMNS", href: "/property/layout/two-columns" },
-        { title: "THREE COLUMNS", href: "/property/layout/three-columns" },
-        {
-          title: "THREE COLUMNS WIDE",
-          href: "/property/layout/three-columns-wide",
-        },
-        { title: "FOUR COLUMNS", href: "/property/layout/four-columns" },
-        {
-          title: "FOUR COLUMNS WIDE",
-          href: "/property/layout/four-columns-wide",
-        },
-      ],
-    },
-    {
-      title: "SINGLE TYPES",
-      items: [
-        { title: "STANDARD", href: "/property/type/standard", isNew: true },
-        { title: "GALLERY", href: "/property/type/gallery", isNew: true },
-        { title: "GRID", href: "/property/type/grid", isNew: true },
-        { title: "VIDEO", href: "/property/type/video", isNew: true },
-        {
-          title: "VIRTUAL TOUR",
-          href: "/property/type/virtual-tour",
-          isNew: true,
-        },
-      ],
-    },
-    {
-      title: "REAL ESTATE",
-      items: [
-        { title: "AGENCY", href: "/real-estate/agency", isNew: true },
-        { title: "AGENT", href: "/real-estate/agent", isNew: true },
-        { title: "APARTMENTS", href: "/real-estate/apartments" },
-        { title: "FOR RENT", href: "/real-estate/for-rent" },
-        { title: "LOCATION", href: "/real-estate/location" },
-      ],
-    },
-  ];
-
+  // Improved hover handling with delay to prevent accidental menu closing
   const handleMouseEnter = (title: string) => {
+    if (menuTimeoutRef.current) {
+      clearTimeout(menuTimeoutRef.current);
+      menuTimeoutRef.current = null;
+    }
     setOpenMenu(title);
   };
 
   const handleMouseLeave = () => {
-    setOpenMenu(null);
+    menuTimeoutRef.current = setTimeout(() => {
+      setOpenMenu(null);
+    }, 100); // Small delay to prevent menu from closing when moving between items
+  };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (menuTimeoutRef.current) {
+        clearTimeout(menuTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle click for mobile/tablet touch devices
+  const handleClick = (title: string, e: React.MouseEvent) => {
+    // If the menu is already open and has children, prevent navigation
+    if (
+      navItems.find((item) => item.title === title)?.children &&
+      openMenu !== title
+    ) {
+      e.preventDefault();
+      setOpenMenu(title);
+    } else if (openMenu === title) {
+      // If clicking the same menu item again, close it
+      setOpenMenu(null);
+    }
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2 mr-8">
+      <div className="container flex h-16 items-center">
+        {/* Logo on the left */}
+        <div className="flex-shrink-0 mr-4">
+          <Link href="/" className="flex items-center">
             <div className="relative h-10 w-10">
               <svg
                 viewBox="0 0 24 24"
@@ -237,13 +166,15 @@ export function SiteHeader() {
                 />
               </svg>
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold leading-none">New</span>
-              <span className="text-lg font-bold leading-none">Home</span>
-            </div>
+            <span className="text-lg font-bold leading-none ml-2">
+              HOMEESTA
+            </span>
           </Link>
+        </div>
 
-          <nav className="hidden lg:flex items-center space-x-8">
+        {/* Navigation centered */}
+        <nav className="hidden lg:flex items-center justify-center flex-1">
+          <div className="flex items-center space-x-8">
             {navItems.map((item) => (
               <div
                 key={item.title}
@@ -254,11 +185,12 @@ export function SiteHeader() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center text-sm font-medium transition-colors hover:text-black relative",
+                    "flex items-center text-sm font-medium transition-colors hover:text-black relative py-5",
                     openMenu === item.title
-                      ? "text-black after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-0.5 after:bg-black"
+                      ? "text-black after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-black"
                       : "text-gray-600"
                   )}
+                  onClick={(e) => handleClick(item.title, e)}
                 >
                   {item.title}
                   {item.children && (
@@ -271,13 +203,6 @@ export function SiteHeader() {
                   )}
                 </Link>
 
-                {item.title === "PROPERTY" && item.children && (
-                  <MegaMenu
-                    items={propertyMegaMenu}
-                    isOpen={openMenu === item.title}
-                  />
-                )}
-
                 {item.title !== "PROPERTY" && item.children && (
                   <SimpleDropdown
                     items={item.children}
@@ -286,16 +211,19 @@ export function SiteHeader() {
                 )}
               </div>
             ))}
-          </nav>
-        </div>
+          </div>
+        </nav>
 
-        <div className="flex items-center space-x-4">
-          <Link href="/join" className="hidden md:block">
-            <Button variant="ghost" className="flex items-center">
-              <User className="mr-2 h-4 w-4" />
-              JOIN US
-            </Button>
-          </Link>
+        {/* Right side buttons */}
+        <div className="flex items-center ml-auto space-x-4">
+          <Button
+            variant="ghost"
+            className="hidden sm:flex items-center"
+            onClick={onOpenAuthModal}
+          >
+            <User className="mr-2 h-4 w-4" />
+            JOIN US
+          </Button>
           <Link href="/add-property">
             <Button className="hidden md:flex items-center">
               <Plus className="mr-2 h-4 w-4" />
@@ -303,30 +231,225 @@ export function SiteHeader() {
             </Button>
           </Link>
 
-          {/* Mobile menu button */}
-          <div className="lg:hidden">
-            <Button variant="outline" size="sm" className="px-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-              >
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </div>
+          {/* Mobile menu */}
+          <MobileNav onOpenAuthModal={onOpenAuthModal} />
         </div>
       </div>
+
+      {/* Property Mega Menu - Full Width */}
+      {openMenu === "PROPERTY" && (
+        <div
+          className="absolute left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-40"
+          onMouseEnter={() => handleMouseEnter("PROPERTY")}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="container mx-auto py-8">
+            <div className="grid grid-cols-4 gap-8">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-6">
+                  LIST TYPES
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <Link
+                      href="/property/half-map"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      HALF MAP LIST{" "}
+                      <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/sidebar"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      SIDEBAR LIST
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/sidebar-wide"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      SIDEBAR LIST WIDE{" "}
+                      <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/top-filter"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      TOP FILTER LIST{" "}
+                      <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/top-filter-wide"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      TOP FILTER LIST WIDE
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/compact"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      COMPACT
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-6">
+                  LIST LAYOUTS
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <Link
+                      href="/property/layout/two-columns"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      TWO COLUMNS
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/layout/three-columns"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      THREE COLUMNS
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/layout/three-columns-wide"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      THREE COLUMNS WIDE
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/layout/four-columns"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      FOUR COLUMNS
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/layout/four-columns-wide"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      FOUR COLUMNS WIDE
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-6">
+                  SINGLE TYPES
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <Link
+                      href="/property/type/standard"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      STANDARD <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/type/gallery"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      GALLERY <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/type/grid"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      GRID <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/type/video"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      VIDEO <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/property/type/virtual-tour"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      VIRTUAL TOUR{" "}
+                      <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-6">
+                  REAL ESTATE
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <Link
+                      href="/real-estate/agency"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      AGENCY <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/real-estate/agent"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      AGENT <span className="ml-2 text-orange-500">★</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/real-estate/apartments"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      APARTMENTS
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/real-estate/for-rent"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      FOR RENT
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/real-estate/location"
+                      className="text-gray-700 hover:text-black flex items-center text-sm"
+                    >
+                      LOCATION
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-200 w-full"></div>
+        </div>
+      )}
     </header>
   );
 }

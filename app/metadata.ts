@@ -1,7 +1,5 @@
-import type { Metadata } from "next";
-import ClientPage from "./ClientPage";
+import type { Metadata } from "next"
 
-// Metadata needs to be in a separate file for App Router
 export const metadata: Metadata = {
   title: "HomeEsta | Find Your Dream Property With No Commission",
   description:
@@ -32,8 +30,5 @@ export const metadata: Metadata = {
       "Discover your perfect home with HomeEsta. Browse thousands of properties for sale and rent with no commission fees.",
     images: ["/images/home-rev-img-1.jpeg"],
   },
-};
-
-export default function Home() {
-  return <ClientPage />;
 }
+

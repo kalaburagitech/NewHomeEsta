@@ -157,7 +157,7 @@ export function ExpertRenovationSection() {
                 <div className="relative h-[220px] rounded-2xl overflow-hidden shadow-xl transform transition-transform duration-500 hover:scale-[1.03] group">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
                   <Image
-                    src="/images/list-half-map-image-1-460x300.jpeg"
+                    src="/images/park-house-03-460x300.jpeg"
                     alt="Empty room ready for renovation"
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"

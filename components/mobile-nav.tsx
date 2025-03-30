@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Plus, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetTitle,
 } from "@/components/ui/sheet";
 
 interface NavItem {
@@ -29,6 +30,10 @@ interface NavSection {
     href: string;
     isNew?: boolean;
   }[];
+}
+
+interface MobileNavProps {
+  onOpenAuthModal?: () => void;
 }
 
 const navItems: NavItem[] = [
@@ -118,13 +123,16 @@ const propertyMegaMenu: NavSection[] = [
   },
 ];
 
-export function MobileNav() {
+export function MobileNav({ onOpenAuthModal }: MobileNavProps) {
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   const toggleItem = (title: string) => {
     setOpenItem(openItem === title ? null : title);
-    setOpenSection(null);
+    // Only reset openSection if we're closing the current item or opening a different one
+    if (openItem === title || openItem !== null) {
+      setOpenSection(null);
+    }
   };
 
   const toggleSection = (title: string) => {
@@ -140,9 +148,11 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0">
+        {/* Added SheetTitle for accessibility */}
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center">
               <div className="relative h-8 w-8">
                 <svg
                   viewBox="0 0 24 24"
@@ -166,13 +176,12 @@ export function MobileNav() {
                   />
                 </svg>
               </div>
-              <div className="flex flex-col">
-                <span className="text-base font-bold leading-none">New</span>
-                <span className="text-base font-bold leading-none">Home</span>
-              </div>
+              <span className="text-base font-bold leading-none ml-2">
+                HOMEESTA
+              </span>
             </Link>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-              <X className="h-5 w-5" />
+              {/* <X className="h-5 w-5" /> */}
               <span className="sr-only">Close</span>
             </SheetClose>
           </div>
@@ -181,7 +190,8 @@ export function MobileNav() {
             <nav className="flex flex-col space-y-1">
               {navItems.map((item) => (
                 <div key={item.title} className="flex flex-col">
-                  {item.children && item.children.length > 0 ? (
+                  {(item.children && item.children.length > 0) ||
+                  item.title === "PROPERTY" ? (
                     <>
                       <button
                         onClick={() => toggleItem(item.title)}
@@ -244,21 +254,22 @@ export function MobileNav() {
                             </div>
                           ) : (
                             <div className="space-y-2 py-2">
-                              {item.children.map((child) => (
-                                <SheetClose asChild key={child.title}>
-                                  <Link
-                                    href={child.href}
-                                    className="flex items-center py-2 px-2 hover:bg-gray-50 text-sm"
-                                  >
-                                    {child.title}
-                                    {child.isNew && (
-                                      <span className="ml-2 text-orange-500 text-xs">
-                                        ★
-                                      </span>
-                                    )}
-                                  </Link>
-                                </SheetClose>
-                              ))}
+                              {item.children &&
+                                item.children.map((child) => (
+                                  <SheetClose asChild key={child.title}>
+                                    <Link
+                                      href={child.href}
+                                      className="flex items-center py-2 px-2 hover:bg-gray-50 text-sm"
+                                    >
+                                      {child.title}
+                                      {child.isNew && (
+                                        <span className="ml-2 text-orange-500 text-xs">
+                                          ★
+                                        </span>
+                                      )}
+                                    </Link>
+                                  </SheetClose>
+                                ))}
                             </div>
                           )}
                         </div>
@@ -280,11 +291,17 @@ export function MobileNav() {
           </div>
 
           <div className="border-t p-4 space-y-2">
-            <Link href="/join" className="w-full">
-              <Button variant="outline" className="w-full justify-start">
-                JOIN US
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                if (onOpenAuthModal) {
+                  onOpenAuthModal();
+                }
+              }}
+            >
+              <User className="mr-2 h-4 w-4" /> JOIN US
+            </Button>
             <Link href="/add-property" className="w-full">
               <Button className="w-full justify-start">
                 <Plus className="mr-2 h-4 w-4" /> ADD PROPERTY
