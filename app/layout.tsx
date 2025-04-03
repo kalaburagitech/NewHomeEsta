@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { Footer } from "@/components/footer";
 import { HomePageStructuredData } from "@/components/structured-data";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
           <HomePageStructuredData />
         </AuthProvider>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

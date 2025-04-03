@@ -128,11 +128,11 @@ export function PropertySearch() {
             <option value="" disabled hidden>
               Property Type
             </option>
-            <option value="house">House</option>
-            <option value="apartment">Apartment</option>
-            <option value="condo">Condo</option>
-            <option value="villa">Villa</option>
-            <option value="land">Land</option>
+            <option value="house">Row Houses</option>
+            <option value="apartment">Apartments/Flats</option>
+            <option value="independent">Independent Houses/homes</option>
+            <option value="site">Residencial Site/ Land</option>
+            <option value="land">Villa Residential Land</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
             <svg
@@ -201,11 +201,18 @@ export function PropertySearch() {
             <option value="" disabled hidden>
               Location
             </option>
-            <option value="ny">New York</option>
-            <option value="la">Los Angeles</option>
-            <option value="ch">Chicago</option>
-            <option value="mi">Miami</option>
-            <option value="sf">San Francisco</option>
+            <option value="ny">Bangalore</option>
+            <option value="la">Hydrabad</option>
+            <option value="ch">Pune</option>
+            <option value="mi">Mumbai</option>
+            <option value="sf">Kalaburagi</option>
+            <option value="be">Belagum</option>
+            <option value="la">Latur</option>
+            <option value="ba">Bidar</option>
+            <option value="so">Solapur</option>
+            <option value="hd">Hubali/Dharwad</option>
+            <option value="na">Nasik</option>
+            <option value="au">Aurangabad</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
             <svg
@@ -225,23 +232,20 @@ export function PropertySearch() {
         <div className="relative">
           <div className="absolute inset-y-0 left-3 sm:left-4 flex items-center pointer-events-none">
             <svg
-              className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
+              className="h-5 w-5 text-gray-400"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                d="M12 2V22"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+              <text
+                x="2"
+                y="18"
+                fontSize="18"
+                fontWeight="bold"
+                fill="currentColor"
+              >
+                ₹
+              </text>
             </svg>
           </div>
           <select
@@ -252,11 +256,11 @@ export function PropertySearch() {
             <option value="" disabled hidden>
               Price Range
             </option>
-            <option value="0-100000">Under $100,000</option>
-            <option value="100000-300000">$100,000 - $300,000</option>
-            <option value="300000-500000">$300,000 - $500,000</option>
-            <option value="500000-1000000">$500,000 - $1,000,000</option>
-            <option value="1000000+">$1,000,000+</option>
+            <option value="0-10000000">Under ₹1 crore</option>
+            <option value="10000000-30000000">₹1 crore - ₹3 crore</option>
+            <option value="30000000-50000000">₹3 crore - ₹5 crore</option>
+            <option value="50000000-100000000">₹5 crore - ₹10 crore</option>
+            <option value="100000000+">₹10 crore+</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
             <svg
